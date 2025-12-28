@@ -1,3 +1,4 @@
+import os
 import torch
 
 class Config:
@@ -39,9 +40,10 @@ class Config:
     TEST_SPLIT = 0.15
     
     # Paths
-    DATA_PATH = './data/generated'
-    MODEL_PATH = './checkpoints'
-    LOG_PATH = './logs'
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATA_PATH = os.path.join(BASE_DIR, 'data', 'generated')
+    MODEL_PATH = os.path.join(BASE_DIR, 'checkpoints')
+    LOG_PATH = os.path.join(BASE_DIR, 'logs')
     
     @classmethod
     def get_snr_bin(cls, snr):
