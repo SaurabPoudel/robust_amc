@@ -1,10 +1,10 @@
 import os
 import numpy as np
 import torch
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 import json
 from pathlib import Path
@@ -42,7 +42,7 @@ model = None
 generator = None
 
 class PredictionRequest(BaseModel):
-    iq_data: list[complex]
+    iq_data: list[list[float]]
     snr: float = None
 
 class PredictionResponse(BaseModel):
@@ -102,28 +102,54 @@ async def read_root(request: Request):
 @app.post("/predict", response_model=PredictionResponse)
 async def predict_modulation(request: PredictionRequest):
     """API endpoint for modulation prediction"""
-    # Convert input to numpy array
-    iq_data = np.array(request.iq_data, dtype=np.complex64)
+    # Convert input to numpy array - input is [[r, i], [r, i], ...]
+    if not request.iq_data:
+        raise HTTPException(status_code=400, detail="Empty IQ data")
+        
+    iq_data = np.array(request.iq_data, dtype=np.float32)
     
-    # Convert to tensor
-    iq_tensor = torch.tensor(np.stack([iq_data.real, iq_data.imag], axis=0), 
+    # Ensure we have the correct length
+    target_length = config.SAMPLE_LENGTH  # 1024
+    current_length = len(iq_data)
+    
+    if current_length < target_length:
+        # Pad with zeros
+        padding = np.zeros((target_length - current_length, 2), dtype=np.float32)
+        iq_data = np.vstack([iq_data, padding])
+    elif current_length > target_length:
+        # Truncate
+        iq_data = iq_data[:target_length]
+    
+    # iq_data shape is now (1024, 2)
+    
+    # Convert to tensor: shape (1, 2, 1024)
+    # iq_data[:, 0] is real part, iq_data[:, 1] is imag part
+    iq_tensor = torch.tensor(np.stack([iq_data[:, 0], iq_data[:, 1]], axis=0), 
                             dtype=torch.float32).unsqueeze(0).to(config.DEVICE)
     
     # Make prediction
     with torch.no_grad():
-        outputs, expert_weights, snr_estimate = model(iq_tensor, return_experts=True)
+        outputs, expert_outputs, gating_weights, snr_probs = model(iq_tensor, return_expert_outputs=True)
         probs = torch.softmax(outputs, dim=1)
         confidence, pred = torch.max(probs, 1)
         
-        # Get expert with highest weight
-        expert_idx = torch.argmax(expert_weights).item()
+        # Get expert with highest weight (gating_weights is already squeezed in return)
+        expert_idx = torch.argmax(gating_weights[0]).item()
         expert_used = config.SNR_BINS[expert_idx]
+        
+        # Estimate SNR from the snr_probs (the expert probabilities indicate SNR bin)
+        # Low SNR: -10 to 0, Mid SNR: 0 to 10, High SNR: 10 to 20
+        snr_ranges = [(-10, 0), (0, 10), (10, 20)]
+        estimated_snr = 0.0
+        for i, (snr_low, snr_high) in enumerate(snr_ranges):
+            prob = snr_probs[0, i].item()
+            estimated_snr += prob * (snr_low + snr_high) / 2
         
         return {
             "prediction": config.MODULATIONS[pred.item()],
             "confidence": confidence.item(),
             "expert_used": expert_used,
-            "snr_estimate": snr_estimate.item() if snr_estimate is not None else None
+            "snr_estimate": estimated_snr
         }
 
 @app.post("/generate")
@@ -133,8 +159,12 @@ async def generate_signal(request: Request):
         # Parse form data
         form_data = await request.form()
         modulation = form_data.get("modulation")
-        snr = float(form_data.get("snr", 0.0))
-        
+        snr_str = form_data.get("snr", "0.0")
+        try:
+            snr = float(snr_str)
+        except ValueError:
+            snr = 0.0
+            
         print(f"Received request - Modulation: {modulation}, SNR: {snr}")
         
         if modulation not in config.MODULATIONS:
