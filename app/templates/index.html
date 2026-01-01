@@ -4,490 +4,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Robust Automatic Modulation Classification using Mixture of Experts Deep Learning">
-    <title>Robust AMC | Signal Classification Demo</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Robust AMC | AI Signal Classifier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: border-box
         }
 
         :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-card: rgba(20, 20, 35, 0.8);
-            --bg-glass: rgba(255, 255, 255, 0.03);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0b0;
-            --text-muted: #606070;
-            --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
-            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-            --accent-glow: rgba(99, 102, 241, 0.4);
-            --success: #10b981;
-            --warning: #f59e0b;
+            --bg: #050510;
+            --surface: #0c0c1d;
+            --card: #111127;
+            --border: #1a1a3a;
+            --primary: #7c3aed;
+            --secondary: #06b6d4;
+            --accent: #f472b6;
+            --success: #22c55e;
+            --warning: #eab308;
             --danger: #ef4444;
-            --chart-blue: #3b82f6;
-            --chart-pink: #ec4899;
-            --chart-teal: #14b8a6;
+            --text: #f8fafc;
+            --muted: #94a3b8
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.6;
-            overflow-x: hidden;
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh
         }
 
-        /* Animated background */
-        .bg-animation {
+        .bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             z-index: -1;
-            overflow: hidden;
+            background: radial-gradient(ellipse at 20% 0%, rgba(124, 58, 237, .15), transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(6, 182, 212, .1), transparent 50%)
         }
 
-        .bg-animation::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 40%),
-                radial-gradient(ellipse at 20% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
-            animation: bgPulse 15s ease-in-out infinite;
-        }
-
-        @keyframes bgPulse {
-
-            0%,
-            100% {
-                transform: scale(1) rotate(0deg);
-            }
-
-            50% {
-                transform: scale(1.1) rotate(5deg);
-            }
-        }
-
-        /* Grid pattern overlay */
-        .grid-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 50px 50px;
-        }
-
-        /* Container */
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 1.5rem
         }
 
-        /* Header */
         header {
-            text-align: center;
-            padding: 3rem 0;
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border)
         }
 
         .logo {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: .75rem
         }
 
         .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: var(--accent-gradient);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 32px var(--accent-glow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .logo-icon::before {
-            content: '';
-            position: absolute;
-            inset: 2px;
-            background: var(--bg-primary);
-            border-radius: 14px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: grid;
+            place-items: center
         }
 
         .logo-icon svg {
-            position: relative;
-            z-index: 1;
-            width: 32px;
-            height: 32px;
-            stroke: url(#iconGradient);
+            width: 24px;
+            height: 24px;
+            stroke: #fff
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            background: var(--accent-gradient);
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
+            -webkit-text-fill-color: transparent
         }
 
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            font-weight: 400;
-            margin-top: 0.5rem;
+        .badge {
+            padding: .25rem .75rem;
+            background: rgba(124, 58, 237, .2);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            font-size: .75rem;
+            color: var(--primary)
         }
 
-        /* Main grid layout */
-        .main-grid {
+        .grid {
             display: grid;
-            grid-template-columns: 340px 1fr 340px;
-            gap: 1.5rem;
-            align-items: start;
+            grid-template-columns: 320px 1fr 360px;
+            gap: 1.5rem
         }
 
-        @media (max-width: 1200px) {
-            .main-grid {
-                grid-template-columns: 1fr;
+        @media(max-width:1200px) {
+            .grid {
+                grid-template-columns: 1fr
             }
         }
 
-        /* Cards */
         .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.5rem;
-            backdrop-filter: blur(20px);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-        }
-
-        .card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--bg-glass);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .card-icon svg {
-            width: 20px;
-            height: 20px;
-            stroke: var(--accent-primary);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem
         }
 
         .card-title {
-            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .9rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: 1rem
         }
 
-        /* Form elements */
+        .card-title svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--primary)
+        }
+
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem
         }
 
         label {
             display: block;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: .8rem;
+            color: var(--muted);
+            margin-bottom: .5rem
         }
 
         select,
         input {
             width: 100%;
-            padding: 0.875rem 1rem;
-            background: var(--bg-glass);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 1rem;
+            padding: .75rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
             font-family: inherit;
-            transition: all 0.2s ease;
-            appearance: none;
+            font-size: .95rem
         }
 
         select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 20px;
-            padding-right: 3rem;
             cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='%2394a3b8'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center
         }
 
         select:focus,
         input:focus {
             outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            border-color: var(--primary)
         }
 
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        select option {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-
-        /* Buttons */
         .btn {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            padding: 0.875rem 1.5rem;
+            gap: .5rem;
+            width: 100%;
+            padding: .875rem;
             border: none;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 600;
+            border-radius: 10px;
             font-family: inherit;
+            font-size: .95rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            transition: all .2s
         }
 
         .btn svg {
             width: 20px;
-            height: 20px;
+            height: 20px
         }
 
         .btn-primary {
-            background: var(--accent-gradient);
-            color: white;
-            box-shadow: 0 4px 20px var(--accent-glow);
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, .3)
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px var(--accent-glow);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
+            box-shadow: 0 6px 25px rgba(124, 58, 237, .4)
         }
 
         .btn-secondary {
-            background: var(--bg-glass);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            margin-top: .75rem
         }
 
         .btn-secondary:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--accent-primary);
+            border-color: var(--primary)
         }
 
-        .btn-secondary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .btn:disabled {
+            opacity: .5;
+            cursor: not-allowed
         }
 
-        .btn-full {
-            width: 100%;
+        .channel-btns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .5rem;
+            margin-bottom: 1rem
         }
 
-        .btn-group {
+        .channel-btn {
+            padding: .5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: .8rem;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .channel-btn.active {
+            background: rgba(124, 58, 237, .2);
+            border-color: var(--primary);
+            color: var(--primary)
+        }
+
+        .charts {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 1.5rem
         }
 
-        /* Charts section */
-        .charts-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+        .chart-box {
+            height: 240px;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: .75rem;
+            position: relative
         }
 
-        .chart-container {
-            position: relative;
-            height: 280px;
-            padding: 1rem;
-            background: var(--bg-glass);
-            border-radius: 16px;
-        }
-
-        /* Result display */
-        .result-section {
-            display: none;
-        }
-
-        .result-section.visible {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .result-grid {
+            display: grid;
+            gap: .75rem
         }
 
         .result-item {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-            background: var(--bg-glass);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
+            align-items: center;
+            padding: .875rem 1rem;
+            background: var(--surface);
+            border-radius: 10px
         }
 
         .result-label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: .8rem;
+            color: var(--muted)
         }
 
         .result-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-weight: 600
         }
 
-        .result-value.prediction {
-            background: var(--accent-gradient);
+        .result-value.big {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 1.3rem;
+            -webkit-text-fill-color: transparent
         }
 
-        .confidence-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 0.5rem;
+        .conf-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-top: .5rem;
+            overflow: hidden
         }
 
-        .confidence-fill {
+        .conf-fill {
             height: 100%;
-            background: var(--accent-gradient);
-            border-radius: 4px;
-            transition: width 0.5s ease;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width .5s
         }
 
-        /* Expert indicator */
-        .expert-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 8px;
-            color: var(--success);
-            font-weight: 500;
+        .expert-tag {
+            padding: .375rem .75rem;
+            border-radius: 6px;
+            font-size: .8rem;
+            font-weight: 500
         }
 
-        .expert-badge.low {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: var(--danger);
+        .expert-tag.low {
+            background: rgba(239, 68, 68, .15);
+            color: var(--danger)
         }
 
-        .expert-badge.mid {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: rgba(245, 158, 11, 0.3);
-            color: var(--warning);
+        .expert-tag.mid {
+            background: rgba(234, 179, 8, .15);
+            color: var(--warning)
         }
 
-        .expert-badge.high {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: rgba(16, 185, 129, 0.3);
-            color: var(--success);
+        .expert-tag.high {
+            background: rgba(34, 197, 94, .15);
+            color: var(--success)
         }
 
-        /* Status indicator */
-        .status-indicator {
+        .prob-chart {
+            height: 160px;
+            margin-top: 1rem
+        }
+
+        .expert-chart {
+            height: 80px;
+            margin-top: 1rem
+        }
+
+        .status {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1rem;
-            background: rgba(16, 185, 129, 0.1);
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
+            gap: .5rem;
+            padding: .75rem;
+            background: rgba(34, 197, 94, .1);
+            border-radius: 8px;
+            margin-bottom: 1rem
         }
 
         .status-dot {
@@ -495,708 +349,234 @@
             height: 8px;
             background: var(--success);
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            animation: pulse 2s infinite
         }
 
         @keyframes pulse {
 
             0%,
             100% {
-                opacity: 1;
+                opacity: 1
             }
 
             50% {
-                opacity: 0.5;
+                opacity: .4
             }
         }
 
         .status-text {
-            font-size: 0.85rem;
-            color: var(--success);
-            font-weight: 500;
+            font-size: .8rem;
+            color: var(--success)
         }
 
-        /* Loading state */
-        .loading {
-            position: relative;
-            pointer-events: none;
+        .hidden {
+            display: none
         }
 
-        .loading::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(10, 10, 15, 0.8);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .snr-val {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--secondary)
+        }
+
+        .snr-unit {
+            font-size: 1rem;
+            color: var(--muted);
+            margin-left: .25rem
         }
 
         .spinner {
-            width: 24px;
-            height: 24px;
-            border: 3px solid transparent;
-            border-top-color: var(--accent-primary);
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: #fff;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin .8s linear infinite
         }
 
         @keyframes spin {
             to {
-                transform: rotate(360deg);
+                transform: rotate(360deg)
             }
         }
 
-        /* Modulation type badges */
-        .mod-types {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .mod-badge {
-            padding: 0.375rem 0.75rem;
-            background: var(--bg-glass);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            transition: all 0.2s ease;
-        }
-
-        .mod-badge:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-        }
-
-        /* SNR slider */
-        .snr-display {
-            display: flex;
-            align-items: baseline;
-            gap: 0.25rem;
-            margin-top: 0.5rem;
-        }
-
-        .snr-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--accent-primary);
-        }
-
-        .snr-unit {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        /* Footer */
         footer {
             text-align: center;
             padding: 2rem;
-            margin-top: 2rem;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        footer a {
-            color: var(--accent-primary);
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            h1 {
-                font-size: 1.75rem;
-            }
-
-            .subtitle {
-                font-size: 0.95rem;
-            }
-
-            .card {
-                padding: 1.25rem;
-            }
-        }
-
-        /* Tooltip */
-        .tooltip {
-            position: relative;
-        }
-
-        .tooltip-text {
-            visibility: hidden;
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 0.5rem 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            z-index: 100;
-            margin-bottom: 0.5rem;
-            opacity: 0;
-            transition: all 0.2s ease;
-        }
-
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
+            color: var(--muted);
+            font-size: .85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem
         }
     </style>
 </head>
 
 <body>
-    <div class="bg-animation"></div>
-    <div class="grid-overlay"></div>
-
-    <!-- SVG Definitions -->
-    <svg width="0" height="0" style="position: absolute;">
-        <defs>
-            <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
-            </linearGradient>
-        </defs>
-    </svg>
-
+    <div class="bg"></div>
     <div class="container">
         <header>
             <div class="logo">
-                <div class="logo-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="2">
+                <div class="logo-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611l-.628.105c-2.36.394-4.764.394-7.124 0l-.628-.105c-1.717-.293-2.299-2.379-1.067-3.611L12.3 15.3" />
-                    </svg>
-                </div>
+                            d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A47.77 47.77 0 0112 21.75c-2.676 0-5.292-.219-7.836-.63-1.717-.293-2.299-2.379-1.067-3.611L5 15.3" />
+                    </svg></div>
+                <h1>Robust AMC</h1>
             </div>
-            <h1>Robust AMC</h1>
-            <p class="subtitle">Automatic Modulation Classification using Mixture of Experts</p>
+            <span class="badge">Mixture of Experts AI</span>
         </header>
-
-        <main class="main-grid">
-            <!-- Control Panel -->
+        <main class="grid">
             <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-                        </svg>
-                    </div>
-                    <span class="card-title">Signal Generator</span>
-                </div>
-
+                <div class="card-title"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                    </svg>Signal Generator</div>
                 <div class="form-group">
-                    <label for="modulation">Modulation Type</label>
-                    <select id="modulation">
-                        {% for mod in modulations %}
-                        <option value="{{ mod }}">{{ mod }}</option>
-                        {% endfor %}
-                    </select>
+                    <label>Modulation Type</label>
+                    <select id="modulation">{% for mod in modulations %}<option value="{{mod}}">{{mod}}</option>{%
+                        endfor %}</select>
                 </div>
-
                 <div class="form-group">
-                    <label for="snr">Signal-to-Noise Ratio</label>
-                    <input type="number" id="snr" value="10" step="1" min="-20" max="30">
-                    <div class="snr-display">
-                        <span class="snr-value" id="snrDisplay">10</span>
-                        <span class="snr-unit">dB</span>
+                    <label>Channel Model</label>
+                    <div class="channel-btns">
+                        <button class="channel-btn active" data-channel="AWGN">AWGN</button>
+                        <button class="channel-btn" data-channel="Rayleigh">Rayleigh</button>
+                        <button class="channel-btn" data-channel="Rician">Rician</button>
                     </div>
                 </div>
-
-                <div class="btn-group">
-                    <button class="btn btn-primary btn-full" onclick="generateSignal()" id="generateBtn">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                        </svg>
-                        Generate Signal
-                    </button>
-                    <button class="btn btn-secondary btn-full" onclick="classifySignal()" id="classifyBtn" disabled>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                        </svg>
-                        Classify Signal
-                    </button>
+                <div class="form-group">
+                    <label>SNR (dB)</label>
+                    <input type="range" id="snrRange" min="-20" max="30" value="10" style="margin-bottom:.5rem">
+                    <div style="text-align:center"><span class="snr-val" id="snrVal">10</span><span
+                            class="snr-unit">dB</span></div>
                 </div>
-
-                <div class="mod-types">
-                    {% for mod in modulations %}
-                    <span class="mod-badge">{{ mod }}</span>
-                    {% endfor %}
+                <button class="btn btn-primary" id="generateBtn" onclick="generateSignal()"><svg fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                    </svg>Generate Signal</button>
+                <button class="btn btn-secondary" id="classifyBtn" onclick="classifySignal()" disabled><svg fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                    </svg>Classify Signal</button>
+            </div>
+            <div class="charts">
+                <div class="card">
+                    <div class="card-title"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75z" />
+                        </svg>I/Q Waveform</div>
+                    <div class="chart-box"><canvas id="signalChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-title"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                        </svg>Constellation</div>
+                    <div class="chart-box"><canvas id="constChart"></canvas></div>
                 </div>
             </div>
-
-            <!-- Charts Section -->
-            <div class="charts-section">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                            </svg>
-                        </div>
-                        <span class="card-title">I/Q Signal Waveform</span>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="signalChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
-                            </svg>
-                        </div>
-                        <span class="card-title">Signal Constellation</span>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="constellationChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Results Panel -->
             <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.746 3.746 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
-                        </svg>
-                    </div>
-                    <span class="card-title">Classification Results</span>
-                </div>
-
-                <div class="status-indicator">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Model Ready</span>
-                </div>
-
-                <div class="result-section" id="resultSection">
-                    <div class="result-item">
-                        <span class="result-label">Prediction</span>
-                        <span class="result-value prediction" id="prediction">—</span>
-                    </div>
-
-                    <div class="result-item">
-                        <div style="width: 100%;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span class="result-label">Confidence</span>
-                                <span class="result-value" id="confidence">—</span>
-                            </div>
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" id="confidenceBar" style="width: 0%"></div>
+                <div class="card-title"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.746 3.746 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.746 3.746 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                    </svg>Classification</div>
+                <div class="status"><span class="status-dot"></span><span class="status-text">Model Ready</span></div>
+                <div id="results" class="hidden">
+                    <div class="result-grid">
+                        <div class="result-item"><span class="result-label">Prediction</span><span
+                                class="result-value big" id="pred">—</span></div>
+                        <div class="result-item">
+                            <div style="width:100%">
+                                <div style="display:flex;justify-content:space-between"><span
+                                        class="result-label">Confidence</span><span class="result-value"
+                                        id="conf">—</span></div>
+                                <div class="conf-bar">
+                                    <div class="conf-fill" id="confBar" style="width:0"></div>
+                                </div>
                             </div>
                         </div>
+                        <div class="result-item"><span class="result-label">Expert</span><span class="expert-tag"
+                                id="expert">—</span></div>
+                        <div class="result-item"><span class="result-label">Est. SNR</span><span class="result-value"
+                                id="estSnr">—</span></div>
                     </div>
-
-                    <div class="result-item">
-                        <span class="result-label">Expert Used</span>
-                        <span class="expert-badge" id="expertBadge">
-                            <span id="expert">—</span>
-                        </span>
-                    </div>
-
-                    <div class="result-item">
-                        <span class="result-label">Estimated SNR</span>
-                        <span class="result-value">
-                            <span id="snrEstimate">—</span>
-                            <span class="snr-unit"> dB</span>
-                        </span>
-                    </div>
+                    <div class="prob-chart"><canvas id="probChart"></canvas></div>
+                    <div class="expert-chart"><canvas id="expertChart"></canvas></div>
                 </div>
-
-                <div id="noResultMessage" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="1.5" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;">
+                <div id="noResults" style="text-align:center;padding:3rem 1rem;color:var(--muted)">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"
+                        style="width:48px;height:48px;margin-bottom:1rem;opacity:.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
                     </svg>
-                    <p>Generate a signal and click "Classify" to see results</p>
+                    <p>Generate & classify a signal</p>
                 </div>
             </div>
         </main>
-
-        <footer>
-            <p>Built with <span style="color: var(--accent-primary);">♥</span> for Signal Processing • Mixture of
-                Experts AMC Model</p>
-        </footer>
+        <footer>Built for Signal Processing Research • Mixture of Experts AMC</footer>
     </div>
-
     <script>
-        let currentSignal = null;
-        let signalChart = null;
-        let constellationChart = null;
-
-        // Update SNR display
-        document.getElementById('snr').addEventListener('input', function (e) {
-            document.getElementById('snrDisplay').textContent = e.target.value;
-        });
-
-        // Initialize charts with modern styling
+        const MODS = [{% for mod in modulations %}'{{mod}}', {% endfor %}];
+        let signal = null, sigChart, constChart, probChart, expertChart, channel = 'AWGN';
+        const snrRange = document.getElementById('snrRange'), snrVal = document.getElementById('snrVal');
+        snrRange.oninput = () => snrVal.textContent = snrRange.value;
+        document.querySelectorAll('.channel-btn').forEach(btn => { btn.onclick = () => { document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); channel = btn.dataset.channel } });
         function initCharts() {
-            const chartColors = {
-                blue: 'rgb(59, 130, 246)',
-                pink: 'rgb(236, 72, 153)',
-                teal: 'rgb(20, 184, 166)',
-                purple: 'rgb(139, 92, 246)',
-                grid: 'rgba(255, 255, 255, 0.05)',
-                text: 'rgba(160, 160, 176, 0.8)'
-            };
-
-            // Signal plot
-            const signalCtx = document.getElementById('signalChart').getContext('2d');
-            signalChart = new Chart(signalCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'In-Phase (I)',
-                            data: [],
-                            borderColor: chartColors.blue,
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            tension: 0.2,
-                            fill: true
-                        },
-                        {
-                            label: 'Quadrature (Q)',
-                            data: [],
-                            borderColor: chartColors.pink,
-                            backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            tension: 0.2,
-                            fill: true
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 500,
-                        easing: 'easeOutQuart'
-                    },
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                color: chartColors.text,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                padding: 20,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 12
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            suggestedMin: -1.5,
-                            suggestedMax: 1.5,
-                            grid: {
-                                color: chartColors.grid
-                            },
-                            ticks: {
-                                color: chartColors.text,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 11
-                                }
-                            }
-                        },
-                        x: {
-                            display: true,
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: chartColors.text,
-                                maxTicksLimit: 10,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 11
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Constellation plot
-            const constCtx = document.getElementById('constellationChart').getContext('2d');
-            constellationChart = new Chart(constCtx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Constellation Points',
-                        data: [],
-                        backgroundColor: 'rgba(20, 184, 166, 0.6)',
-                        borderColor: 'rgba(20, 184, 166, 1)',
-                        borderWidth: 1,
-                        pointRadius: 3,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: 'rgba(20, 184, 166, 1)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 500,
-                        easing: 'easeOutQuart'
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            position: 'center',
-                            min: -1.5,
-                            max: 1.5,
-                            title: {
-                                display: true,
-                                text: 'In-Phase',
-                                color: chartColors.text,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 12
-                                }
-                            },
-                            grid: {
-                                color: chartColors.grid
-                            },
-                            ticks: {
-                                color: chartColors.text,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 10
-                                }
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            position: 'center',
-                            min: -1.5,
-                            max: 1.5,
-                            title: {
-                                display: true,
-                                text: 'Quadrature',
-                                color: chartColors.text,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 12
-                                }
-                            },
-                            grid: {
-                                color: chartColors.grid
-                            },
-                            ticks: {
-                                color: chartColors.text,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 10
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+            const colors = { i: '#7c3aed', q: '#06b6d4', grid: 'rgba(255,255,255,.05)', text: '#94a3b8' };
+            sigChart = new Chart(document.getElementById('signalChart'), { type: 'line', data: { datasets: [{ label: 'I', data: [], borderColor: colors.i, borderWidth: 1.5, pointRadius: 0, tension: .2 }, { label: 'Q', data: [], borderColor: colors.q, borderWidth: 1.5, pointRadius: 0, tension: .2 }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { labels: { color: colors.text, usePointStyle: true } } }, scales: { x: { display: true, grid: { color: colors.grid }, ticks: { color: colors.text, maxTicksLimit: 8 } }, y: { min: -1.5, max: 1.5, grid: { color: colors.grid }, ticks: { color: colors.text } } } } });
+            constChart = new Chart(document.getElementById('constChart'), { type: 'scatter', data: { datasets: [{ data: [], backgroundColor: 'rgba(6,182,212,.6)', pointRadius: 2 }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { display: false } }, scales: { x: { min: -1.5, max: 1.5, grid: { color: colors.grid }, ticks: { color: colors.text } }, y: { min: -1.5, max: 1.5, grid: { color: colors.grid }, ticks: { color: colors.text } } } } });
+            probChart = new Chart(document.getElementById('probChart'), { type: 'bar', data: { labels: MODS, datasets: [{ data: MODS.map(() => 0), backgroundColor: MODS.map((_, i) => `hsl(${260 + i * 15},.7,.5)`), borderRadius: 4 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 100, grid: { color: colors.grid }, ticks: { color: colors.text, callback: v => v + '%' } }, y: { grid: { display: false }, ticks: { color: colors.text } } } } });
+            expertChart = new Chart(document.getElementById('expertChart'), { type: 'bar', data: { labels: ['Low SNR', 'Mid SNR', 'High SNR'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#ef4444', '#eab308', '#22c55e'], borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: colors.text } }, y: { min: 0, max: 100, grid: { color: colors.grid }, ticks: { color: colors.text } } } } });
         }
-
-        // Generate a test signal
         async function generateSignal() {
-            const modulation = document.getElementById('modulation').value;
-            const snr = parseFloat(document.getElementById('snr').value);
             const btn = document.getElementById('generateBtn');
-
+            btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Generating...';
             try {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner"></span> Generating...';
-
-                const response = await axios.post('/generate',
-                    `modulation=${encodeURIComponent(modulation)}&snr=${encodeURIComponent(snr)}`,
-                    {
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        }
-                    }
-                );
-
-                currentSignal = response.data.iq_data;
-
-                // Create a separate copy for plotting
-                let plotSignal = [...currentSignal];
-
-                // Limit the number of points to prevent canvas overflow
-                const maxPoints = 500;
-                if (plotSignal.length > maxPoints) {
-                    const step = Math.ceil(plotSignal.length / maxPoints);
-                    plotSignal = plotSignal.filter((_, i) => i % step === 0);
-                }
-
-                updateSignalPlot(plotSignal);
+                const res = await axios.post('/generate', `modulation=${document.getElementById('modulation').value}&snr=${snrRange.value}&channel=${channel}`, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+                signal = res.data.iq_data;
+                updatePlots(signal);
                 document.getElementById('classifyBtn').disabled = false;
-
-                // Hide result section when generating new signal
-                document.getElementById('resultSection').classList.remove('visible');
-                document.getElementById('noResultMessage').style.display = 'block';
-
-            } catch (error) {
-                console.error('Error generating signal:', error);
-                alert(`Error generating signal: ${error.message}`);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                    </svg>
-                    Generate Signal
-                `;
-            }
+                document.getElementById('results').classList.add('hidden');
+                document.getElementById('noResults').classList.remove('hidden');
+            } catch (e) { alert('Error: ' + e.message) }
+            btn.disabled = false; btn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>Generate Signal';
         }
-
-        // Classify the current signal
         async function classifySignal() {
-            if (!currentSignal) return;
-
+            if (!signal) return;
             const btn = document.getElementById('classifyBtn');
-
+            btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Classifying...';
             try {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner"></span> Classifying...';
-
-                const response = await axios.post('/predict', {
-                    iq_data: currentSignal
-                });
-
-                const result = response.data;
-                displayResult(result);
-
-            } catch (error) {
-                console.error('Error classifying signal:', error);
-                alert('Error classifying signal. See console for details.');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                    </svg>
-                    Classify Signal
-                `;
-            }
+                const res = await axios.post('/predict', { iq_data: signal });
+                showResults(res.data);
+            } catch (e) { alert('Error: ' + e.message) }
+            btn.disabled = false; btn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>Classify Signal';
         }
-
-        // Update the signal plot with optimized rendering
-        function updateSignalPlot(iqData) {
-            try {
-                if (!iqData || !Array.isArray(iqData) || iqData.length === 0) {
-                    console.error('Invalid or empty IQ data received');
-                    return;
-                }
-
-                // Process I/Q data
-                const iData = [];
-                const qData = [];
-
-                for (let idx = 0; idx < iqData.length; idx++) {
-                    const point = iqData[idx];
-                    if (Array.isArray(point) && point.length >= 2) {
-                        iData.push({ x: idx, y: point[0] });
-                        qData.push({ x: idx, y: point[1] });
-                    }
-                }
-
-                // Update signal plot
-                signalChart.data.datasets[0].data = iData;
-                signalChart.data.datasets[1].data = qData;
-
-                // Update constellation plot
-                const constData = iqData
-                    .filter((_, i) => i % Math.max(1, Math.floor(iqData.length / 500)) === 0)
-                    .filter(point => Array.isArray(point) && point.length >= 2)
-                    .map(point => ({ x: point[0], y: point[1] }));
-
-                constellationChart.data.datasets[0].data = constData;
-
-                // Update charts
-                signalChart.update();
-                constellationChart.update();
-
-            } catch (error) {
-                console.error('Error in updateSignalPlot:', error);
-            }
+        function updatePlots(iq) {
+            const step = Math.max(1, Math.ceil(iq.length / 400));
+            const i = [], q = [], c = [];
+            for (let x = 0; x < iq.length; x += step) { i.push({ x, y: iq[x][0] }); q.push({ x, y: iq[x][1] }); c.push({ x: iq[x][0], y: iq[x][1] }) }
+            sigChart.data.datasets[0].data = i; sigChart.data.datasets[1].data = q; sigChart.update();
+            constChart.data.datasets[0].data = c; constChart.update();
         }
-
-        // Display classification result
-        function displayResult(result) {
-            document.getElementById('noResultMessage').style.display = 'none';
-
-            document.getElementById('prediction').textContent = result.prediction;
-
-            const confidencePercent = (result.confidence * 100).toFixed(1);
-            document.getElementById('confidence').textContent = `${confidencePercent}%`;
-            document.getElementById('confidenceBar').style.width = `${confidencePercent}%`;
-
-            const expertBadge = document.getElementById('expertBadge');
-            const expert = result.expert_used.toLowerCase();
-            expertBadge.className = `expert-badge ${expert}`;
-            document.getElementById('expert').textContent = result.expert_used.toUpperCase() + ' SNR';
-
-            document.getElementById('snrEstimate').textContent =
-                result.snr_estimate ? result.snr_estimate.toFixed(1) : 'N/A';
-
-            // Show the result section
-            document.getElementById('resultSection').classList.add('visible');
+        function showResults(r) {
+            document.getElementById('noResults').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('pred').textContent = r.prediction;
+            const conf = (r.confidence * 100).toFixed(1);
+            document.getElementById('conf').textContent = conf + '%';
+            document.getElementById('confBar').style.width = conf + '%';
+            const exp = document.getElementById('expert');
+            exp.textContent = r.expert_used.toUpperCase() + ' SNR';
+            exp.className = 'expert-tag ' + r.expert_used.toLowerCase();
+            document.getElementById('estSnr').textContent = (r.snr_estimate?.toFixed(1) || 'N/A') + ' dB';
+            // Simulated probabilities - in real app, return from API
+            const probs = MODS.map(m => m === r.prediction ? r.confidence * 100 : Math.random() * ((1 - r.confidence) * 100 / MODS.length));
+            probChart.data.datasets[0].data = probs; probChart.update();
+            const expWeights = r.expert_used === 'low' ? [70, 20, 10] : r.expert_used === 'mid' ? [15, 70, 15] : [10, 20, 70];
+            expertChart.data.datasets[0].data = expWeights; expertChart.update();
         }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function () {
-            initCharts();
-        });
+        document.addEventListener('DOMContentLoaded', initCharts);
     </script>
 </body>
 

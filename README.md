@@ -47,7 +47,7 @@ SNR-Adaptive-AMC/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/SNR-Adaptive-AMC.git
+git clone https://github.com/SaurabPoudel/SNR-Adaptive-AMC.git
 cd SNR-Adaptive-AMC
 ```
 
