@@ -236,7 +236,7 @@ async def generate_signal(request: Request):
         signal = signal / np.max(np.abs(signal) + 1e-10)  # Add small value to avoid division by zero
         
         # Convert complex to list of [real, imag] pairs
-        iq_data = [[s.real, s.imag] for s in signal]
+        iq_data = [[float(s.real), float(s.imag)] for s in signal]
         
         return {
             "iq_data": iq_data,
